@@ -15,12 +15,14 @@ public class Passenger {
 	@Id
 	private int passenger_id;
 	private String passenger_name;
+	private String email;
 	private String password;
 	
-	public Passenger(int passenger_id, String passenger_name, String password) {
+	public Passenger(int passenger_id, String passenger_name, String email, String password) {
 		super();
 		this.passenger_id = passenger_id;
 		this.passenger_name = passenger_name;
+		this.email = email;
 		this.password = password;
 	}
 
@@ -40,6 +42,14 @@ public class Passenger {
 		this.passenger_name = passenger_name;
 	}
 
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
 	public String getPassword() {
 		return password;
 	}
@@ -50,9 +60,8 @@ public class Passenger {
 
 	@Override
 	public String toString() {
-		return "Passenger [passenger_id=" + passenger_id + ", passenger_name=" + passenger_name + ", password="
-				+ password + "]";
+		return "Passenger [passenger_id=" + passenger_id + ", passenger_name=" + passenger_name + ", email=" + email
+				+ ", password=" + password + "]";
 	}
-	
-	
+		
 }
