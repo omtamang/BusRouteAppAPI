@@ -7,10 +7,9 @@ import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -22,7 +21,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -43,11 +41,20 @@ import com.nimbusds.jose.proc.SecurityContext;
 @EnableMethodSecurity 
 public class JwtSecurityConfiguration {
 	
+	@Autowired
+	DataSource dataSource;
+	
+	public JwtSecurityConfiguration(DataSource dataSource) {
+		super();
+		this.dataSource = dataSource;
+	}
+
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/token").permitAll()
 				.requestMatchers("/h2-console/**").permitAll()
+				.requestMatchers("/addpassenger").permitAll()
 				.anyRequest().authenticated()
 				);
 		http.sessionManagement(
@@ -73,25 +80,13 @@ public class JwtSecurityConfiguration {
 	}
 	
 	@Bean
-	public DataSource dataSource() {
-		return new EmbeddedDatabaseBuilder()
-				.setType(EmbeddedDatabaseType.H2)
-				.addScript(JdbcDaoImpl.DEFAULT_USER_SCHEMA_DDL_LOCATION)
-				.build();
-	}
-	
-	@Bean
 	public UserDetailsService userDetailService(DataSource dataSource) {
 		
-		UserDetails user = User.withUsername("om@gmail.com")
-				.password(passwordEncoder().encode("candoit"))
-				.roles("USER", "ADMIN")
-				.build();
-
-		JdbcUserDetailsManager jdbcUserDetailsManager =  new JdbcUserDetailsManager(dataSource);
-		if (!jdbcUserDetailsManager.userExists("om")) { // Avoid duplicate user creation
-	        jdbcUserDetailsManager.createUser(user);
-	    }
+		JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
+		jdbcUserDetailsManager.setUsersByUsernameQuery(
+				"SELECT Email AS username, password, true AS enabled FROM Passenger WHERE Email = ?"
+				);
+		jdbcUserDetailsManager.setAuthoritiesByUsernameQuery("SELECT Email AS username, 'ROLE_USER' AS authority FROM Passenger WHERE Email = ?");
 		
 		return jdbcUserDetailsManager;
 	}
