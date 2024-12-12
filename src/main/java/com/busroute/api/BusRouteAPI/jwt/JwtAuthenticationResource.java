@@ -1,49 +1,29 @@
 package com.busroute.api.BusRouteAPI.jwt;
 
-import java.time.Instant;
-import java.util.stream.Collectors;
-
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class JwtAuthenticationResource {
 	
-	private JwtEncoder jwtEncoder;
+	private final TokenService tokenService;
 	
-	public JwtAuthenticationResource(JwtEncoder jwtEncoder) {
+	private final AuthenticationManager authenticaitonManager;
+
+	public JwtAuthenticationResource(TokenService tokenService, AuthenticationManager authenticaitonManager) {
 		super();
-		this.jwtEncoder = jwtEncoder;
+		this.tokenService = tokenService;
+		this.authenticaitonManager = authenticaitonManager;
 	}
 
-	@PostMapping("/authenticate")
-	public JwtResponse authenticate(Authentication authentication) {
-		return new JwtResponse(createToken(authentication));
+	@PostMapping("/token")
+	public String token(@RequestBody LoginRequest userLogin) {
+		Authentication authentication = authenticaitonManager.authenticate(new UsernamePasswordAuthenticationToken(userLogin.username(), userLogin.password()));
+		return tokenService.generateToken(authentication);
 	}
-
-	private String createToken(Authentication authentication) {
-		var claims = JwtClaimsSet.builder()
-								.issuer("self")
-								.issuedAt(Instant.now())
-								.expiresAt(Instant.now().plusSeconds(60 * 30))
-								.subject(authentication.getName())
-								.claim("scope", createScope(authentication))
-								.build();
-		
-		return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-	}
-
-	private Object createScope(Authentication authentication) {
-		return authentication.getAuthorities().stream()
-				.map(a -> a.getAuthority())
-				.collect(Collectors.joining(" "));
-	}
-	
 	
 }
-
-record JwtResponse(String token) {}

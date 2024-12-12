@@ -11,12 +11,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -31,11 +39,17 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
 @Configuration
+@EnableWebSecurity
+@EnableMethodSecurity 
 public class JwtSecurityConfiguration {
 	
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http.authorizeHttpRequests((requests) -> requests.anyRequest().authenticated());
+		http.authorizeHttpRequests(auth -> auth
+				.requestMatchers("/token").permitAll()
+				.requestMatchers("/h2-console/**").permitAll()
+				.anyRequest().authenticated()
+				);
 		http.sessionManagement(
 				session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 				);
@@ -44,10 +58,18 @@ public class JwtSecurityConfiguration {
 				oauth2 -> oauth2.jwt()
 				);
 		
-		http.httpBasic();
+		http.httpBasic(Customizer.withDefaults());
 		http.csrf().disable();
 		http.headers().frameOptions().sameOrigin();
 		return http.build();
+	}
+	
+	@Bean
+	public AuthenticationManager authManager(UserDetailsService userDetailService) {
+		var authProvider = new DaoAuthenticationProvider();
+		authProvider.setUserDetailsService(userDetailService);
+		authProvider.setPasswordEncoder(passwordEncoder());
+		return new ProviderManager(authProvider);
 	}
 	
 	@Bean
@@ -61,20 +83,21 @@ public class JwtSecurityConfiguration {
 	@Bean
 	public UserDetailsService userDetailService(DataSource dataSource) {
 		
-		var user = User.withUsername("om")
-				.password("candoit")
-				.passwordEncoder(str -> passwordEncoder().encode(str))
-				.roles("USER")
+		UserDetails user = User.withUsername("om@gmail.com")
+				.password(passwordEncoder().encode("candoit"))
+				.roles("USER", "ADMIN")
 				.build();
-		
-		var jdbcUserDetailsManager =  new JdbcUserDetailsManager(dataSource);
-		jdbcUserDetailsManager.createUser(user);
+
+		JdbcUserDetailsManager jdbcUserDetailsManager =  new JdbcUserDetailsManager(dataSource);
+		if (!jdbcUserDetailsManager.userExists("om")) { // Avoid duplicate user creation
+	        jdbcUserDetailsManager.createUser(user);
+	    }
 		
 		return jdbcUserDetailsManager;
 	}
 	
 	@Bean
-	public BCryptPasswordEncoder passwordEncoder() {
+	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 	
