@@ -30,7 +30,7 @@ public class PassengerController {
 		return passengerRepository.findAll();
 	}
 	
-	@PostMapping("/addpassenger")
+	@PostMapping("/passenger")
 	public ResponseEntity<String> addPassenger(@RequestBody Passenger passenger) {
 		
 		if((boolean)passengerRepository.existsByEmail(passenger.getEmail())) {
