@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -26,6 +27,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -54,20 +56,23 @@ public class JwtSecurityConfiguration {
 				.requestMatchers("/token", "/h2-console/**", "/passenger/signup").permitAll()
 				.anyRequest().authenticated()
 				);
+		
+		
 		http.sessionManagement(
-				session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-				);
+			    session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+			);
+
+		http.oauth2Login(Customizer.withDefaults());
 		
 		http.oauth2ResourceServer(
 				oauth2 -> oauth2.jwt()
 				);
 		
-		
 		http.csrf().disable();
 		http.headers().frameOptions().sameOrigin(); 
 		return http.build();
 	}
-	
+
 	@Bean
 	public AuthenticationManager authManager(UserDetailsService userDetailService) {
 		var authProvider = new DaoAuthenticationProvider();
