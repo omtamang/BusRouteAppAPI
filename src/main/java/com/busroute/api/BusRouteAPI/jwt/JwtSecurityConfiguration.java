@@ -53,7 +53,7 @@ public class JwtSecurityConfiguration {
 		http.cors()
 		.and()
 		.authorizeHttpRequests(auth -> auth
-				.requestMatchers("/token", "/h2-console/**", "/passenger/signup").permitAll()
+				.requestMatchers("/token", "/h2-console/**", "/passenger/signup", "/verify/code", "/send/code/{email}").permitAll()
 				.anyRequest().authenticated()
 				);
 		

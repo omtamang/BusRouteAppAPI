@@ -1,7 +1,10 @@
 package com.busroute.api.BusRouteAPI.jwt;
 
 import java.io.IOException;
+import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -35,9 +38,17 @@ public class JwtAuthenticationResource {
 	}
 
 	@PostMapping("/token")
-	public String token(@RequestBody LoginRequest userLogin) {
-		Authentication authentication = authenticaitonManager.authenticate(new UsernamePasswordAuthenticationToken(userLogin.username(), userLogin.password()));
-		return tokenService.generateToken(authentication);
+	public ResponseEntity<String> token(@RequestBody LoginRequest userLogin) {
+		List<Passenger> passenger = passengerRepository.findByEmail(userLogin.username());
+		boolean id = passenger.get(0).isVerified();
+		
+		if(id) {
+			Authentication authentication = authenticaitonManager.authenticate(new UsernamePasswordAuthenticationToken(userLogin.username(), userLogin.password()));
+			String token = tokenService.generateToken(authentication);
+			return ResponseEntity.ok(token);
+		}
+		
+		return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User is not verified");
 	}
 	
 	public String generateTokenForGoogle(String email, String password) {

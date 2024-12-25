@@ -1,8 +1,9 @@
 package com.busroute.api.BusRouteAPI.Resource;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Random;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -12,18 +13,25 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
-
+import com.busroute.api.BusRouteAPI.Repository.EmailVerifyRepository;
 import com.busroute.api.BusRouteAPI.Repository.PassengerRepository;
+import com.busroute.api.BusRouteAPI.mailing.EmailCode;
+import com.busroute.api.BusRouteAPI.mailing.EmailSenderService;
 import com.busroute.api.BusRouteAPI.user.Passenger;
 
 @RestController
 @EnableMethodSecurity
 public class PassengerController {
+	
+	@Autowired
+	private EmailSenderService emailSenderService;
+	
+	@Autowired
+	private EmailVerifyRepository emailVerifyRepository;
 	
 	private PassengerRepository passengerRepository;
 	private final JwtDecoder jwtDecoder;
@@ -51,9 +59,27 @@ public class PassengerController {
 		passenger.setPassword(hash);
 		
 		passengerRepository.save(passenger);
+		
+		// generate code
+		int code = generateCode();
+		String body = code + "";
+		
+		// save email code in database
+		EmailCode emailCode = new EmailCode();
+		emailCode.setCode(code);
+		emailCode.setPassenger(passenger);
+		emailVerifyRepository.save(emailCode);
+		
+		// send email and code to the new user
+		emailSenderService.sendEmail(passenger.getEmail(), "This is verification code for NepaGo.", body);
 		return ResponseEntity.status(HttpStatus.CREATED).body("created successfully");
 	}
-
+	
+	private int generateCode() {
+		Random rand = new Random();
+		int code = rand.nextInt(999999);
+		return code;
+	}
 		
 	@GetMapping("/passengers/info")
 	public String getPassenger(@RequestHeader("Authorization")String jwt){
@@ -71,7 +97,6 @@ public class PassengerController {
 		String email = getEmailFromToken(jwt);
 		
 		List<Passenger> list = passengerRepository.findByEmail(email);
-		
 		
 		Passenger passenger = list.get(0);
 		int id = passenger.getPassenger_id();

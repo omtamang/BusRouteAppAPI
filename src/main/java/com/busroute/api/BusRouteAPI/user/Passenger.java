@@ -1,8 +1,13 @@
 package com.busroute.api.BusRouteAPI.user;
 
+import java.util.List;
+
+import com.busroute.api.BusRouteAPI.mailing.EmailCode;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 
 @Entity
 public class Passenger {
@@ -17,13 +22,20 @@ public class Passenger {
 	private String passenger_name;
 	private String email;
 	private String password;
-	
-	public Passenger(int passenger_id, String passenger_name, String email, String password) {
+	private boolean verified;
+
+	@OneToMany(mappedBy = "passenger")
+	private List<EmailCode> emailCode;
+
+	public Passenger(int passenger_id, String passenger_name, String email, String password, boolean verified,
+			List<EmailCode> emailCode) {
 		super();
 		this.passenger_id = passenger_id;
 		this.passenger_name = passenger_name;
 		this.email = email;
 		this.password = password;
+		this.verified = verified;
+		this.emailCode = emailCode;
 	}
 
 	public int getPassenger_id() {
@@ -58,10 +70,26 @@ public class Passenger {
 		this.password = password;
 	}
 
+	public boolean isVerified() {
+		return verified;
+	}
+
+	public void setVerified(boolean verified) {
+		this.verified = verified;
+	}
+
+	public List<EmailCode> getEmailCode() {
+		return emailCode;
+	}
+
+	public void setEmailCode(List<EmailCode> emailCode) {
+		this.emailCode = emailCode;
+	}
+
 	@Override
 	public String toString() {
 		return "Passenger [passenger_id=" + passenger_id + ", passenger_name=" + passenger_name + ", email=" + email
-				+ ", password=" + password + "]";
+				+ ", password=" + password + ", verified=" + verified + ", emailCode=" + emailCode + "]";
 	}
 		
 }
