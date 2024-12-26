@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.busroute.api.BusRouteAPI.Repository.EmailVerifyRepository;
 import com.busroute.api.BusRouteAPI.Repository.PassengerRepository;
+import com.busroute.api.BusRouteAPI.schedule.SheduleDeletionService;
 import com.busroute.api.BusRouteAPI.user.Passenger;
 
 @RestController
@@ -28,6 +29,9 @@ public class EmailVerification {
 	@Autowired
 	private EmailSenderService emailSenderService;
 	
+	@Autowired
+	private SheduleDeletionService sheduleDeletionService;
+	
 	@PostMapping("/verify/code")
 	public ResponseEntity<String> verifyCode(@RequestBody VerificationCode verificationCode){
 		
@@ -38,6 +42,7 @@ public class EmailVerification {
 		if(String.valueOf(code).equals(verificationCode.code())) {
 			id.setVerified(true);
 			passengerRepository.save(id);
+			emailVerifyRepository.deleteAll(id.getEmailCode());
 			return ResponseEntity.status(HttpStatus.ACCEPTED).body("Verified");
 		}
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Wrong Code");
@@ -48,6 +53,14 @@ public class EmailVerification {
 		List<Passenger> passenger = passengerRepository.findByEmail(email);
 		
 		Passenger pass = passenger.get(0);
+		int id = pass.getPassenger_id();
+		
+		// delete the previous code
+		List<EmailCode> e = pass.getEmailCode();
+		
+		if(!e.isEmpty()) {
+			emailVerifyRepository.delete(pass.getEmailCode().get(0));
+		}
 		
 		// generate code
 		int code = generateCode();
@@ -59,6 +72,10 @@ public class EmailVerification {
 			emailCode.setCode(code);
 			emailCode.setPassenger(pass);
 			emailVerifyRepository.save(emailCode);
+			
+			// set Timer for deletion of the code
+			sheduleDeletionService.scheduleDeletion(id);
+			
 			// send email and code to the new user
 			emailSenderService.sendEmail(pass.getEmail(), "This is verification code for NepaGo.", body);
 			return ResponseEntity.status(HttpStatus.CREATED).body("created successfully");

@@ -5,6 +5,7 @@ import java.util.List;
 import com.busroute.api.BusRouteAPI.mailing.EmailCode;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
@@ -24,7 +25,7 @@ public class Passenger {
 	private String password;
 	private boolean verified;
 
-	@OneToMany(mappedBy = "passenger")
+	@OneToMany(mappedBy = "passenger", fetch = FetchType.EAGER )
 	private List<EmailCode> emailCode;
 
 	public Passenger(int passenger_id, String passenger_name, String email, String password, boolean verified,

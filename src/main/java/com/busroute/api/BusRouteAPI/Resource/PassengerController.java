@@ -21,6 +21,7 @@ import com.busroute.api.BusRouteAPI.Repository.EmailVerifyRepository;
 import com.busroute.api.BusRouteAPI.Repository.PassengerRepository;
 import com.busroute.api.BusRouteAPI.mailing.EmailCode;
 import com.busroute.api.BusRouteAPI.mailing.EmailSenderService;
+import com.busroute.api.BusRouteAPI.schedule.SheduleDeletionService;
 import com.busroute.api.BusRouteAPI.user.Passenger;
 
 @RestController
@@ -32,6 +33,9 @@ public class PassengerController {
 	
 	@Autowired
 	private EmailVerifyRepository emailVerifyRepository;
+	
+	@Autowired
+	private SheduleDeletionService sheduleDeletionService;
 	
 	private PassengerRepository passengerRepository;
 	private final JwtDecoder jwtDecoder;
@@ -69,6 +73,8 @@ public class PassengerController {
 		emailCode.setCode(code);
 		emailCode.setPassenger(passenger);
 		emailVerifyRepository.save(emailCode);
+		
+		sheduleDeletionService.scheduleDeletion(passenger.getPassenger_id());
 		
 		// send email and code to the new user
 		emailSenderService.sendEmail(passenger.getEmail(), "This is verification code for NepaGo.", body);
