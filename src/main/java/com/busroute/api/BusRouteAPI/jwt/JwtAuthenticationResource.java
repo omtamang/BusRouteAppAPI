@@ -45,7 +45,7 @@ public class JwtAuthenticationResource {
 		if(id) {
 			Authentication authentication = authenticaitonManager.authenticate(new UsernamePasswordAuthenticationToken(userLogin.username(), userLogin.password()));
 			String token = tokenService.generateToken(authentication);
-			return ResponseEntity.ok(token);
+			return ResponseEntity.ok(token); 
 		}
 		
 		return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User is not verified");
@@ -61,8 +61,9 @@ public class JwtAuthenticationResource {
 		String email = token.getPrincipal().getAttribute("email");
 		String pass = token.getPrincipal().getAttribute("name");
 		String hash = passwordEncoder().encode(pass);
-		
+		System.out.println(hash);
 		if(passengerRepository.existsByEmail(email)) {
+			
 			String redirectUrl = "http://localhost:3000/google/handling/" + generateTokenForGoogle(email, pass);
 		    response.sendRedirect(redirectUrl);
 		}else {
@@ -71,6 +72,7 @@ public class JwtAuthenticationResource {
 			passenger.setEmail(email);
 			passenger.setPassenger_name(name);
 			passenger.setPassword(hash);
+			passenger.setVerified(true);
 			passengerRepository.save(passenger);
 
 			response.sendRedirect("http://localhost:3000/google/handling/" + generateTokenForGoogle(email, pass));

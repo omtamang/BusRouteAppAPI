@@ -27,13 +27,17 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -53,10 +57,9 @@ public class JwtSecurityConfiguration {
 		http.cors()
 		.and()
 		.authorizeHttpRequests(auth -> auth
-				.requestMatchers("/token", "/h2-console/**", "/passenger/signup", "/verify/code", "/send/code/{email}").permitAll()
+				.requestMatchers("/token", "/passenger/signup", "/verify/code", "/send/code/{email}").permitAll()
 				.anyRequest().authenticated()
 				);
-		
 		
 		http.sessionManagement(
 			    session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -67,10 +70,22 @@ public class JwtSecurityConfiguration {
 		http.oauth2ResourceServer(
 				oauth2 -> oauth2.jwt()
 				);
-		
+
 		http.csrf().disable();
-		http.headers().frameOptions().sameOrigin(); 
 		return http.build();
+	}
+	
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+	    CorsConfiguration configuration = new CorsConfiguration();
+	    configuration.addAllowedOrigin("http://localhost:3000"); // Ensure your frontend URL is allowed
+	    configuration.addAllowedMethod("*");
+	    configuration.addAllowedHeader("*");
+	    configuration.setAllowCredentials(true);
+
+	    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+	    source.registerCorsConfiguration("/**", configuration);  // Apply the configuration to all routes
+	    return source;
 	}
 
 	@Bean
@@ -82,17 +97,22 @@ public class JwtSecurityConfiguration {
 	}
 	
 	@Bean
-	public UserDetailsService userDetailService(DataSource dataSource) {
-		
-		JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
-		jdbcUserDetailsManager.setUsersByUsernameQuery(
-				"SELECT Email AS username, password, true AS enabled FROM Passenger WHERE Email = ?"
-				);
-		jdbcUserDetailsManager.setAuthoritiesByUsernameQuery("SELECT Email AS username, 'ROLE_USER' AS authority FROM Passenger WHERE Email = ?");
-		
-		return jdbcUserDetailsManager;
+	public UserDetailsService userDetailsService(DataSource dataSource) {
+	    JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
+
+	    // Updated query to match your actual database column names
+	    jdbcUserDetailsManager.setUsersByUsernameQuery(
+	        "SELECT email AS username, password AS password, verified AS enabled FROM passenger WHERE email = ?"
+	    );
+
+	    jdbcUserDetailsManager.setAuthoritiesByUsernameQuery(
+	        "SELECT email AS username, 'ROLE_USER' AS authority FROM passenger WHERE email = ?"
+	    );
+
+	    return jdbcUserDetailsManager;
 	}
-	
+
+
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
