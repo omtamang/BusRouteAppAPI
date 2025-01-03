@@ -8,6 +8,7 @@ import java.util.UUID;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -46,6 +47,9 @@ public class JwtSecurityConfiguration {
 	
 	@Autowired
 	DataSource dataSource;
+
+	@Value("${frontend.url}")
+	private String frontend;
 	
 	public JwtSecurityConfiguration(DataSource dataSource) {
 		super();
@@ -78,7 +82,7 @@ public class JwtSecurityConfiguration {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 	    CorsConfiguration configuration = new CorsConfiguration();
-	    configuration.addAllowedOrigin("http://localhost:3000"); // Ensure your frontend URL is allowed
+	    configuration.addAllowedOrigin(frontend); // Ensure your frontend URL is allowed
 	    configuration.addAllowedMethod("*");
 	    configuration.addAllowedHeader("*");
 	    configuration.setAllowCredentials(true);

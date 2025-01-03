@@ -4,22 +4,19 @@ import java.util.List;
 
 import com.busroute.api.BusRouteAPI.mailing.EmailCode;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 
 @Entity
 public class Passenger {
 	
-	public Passenger(){
-		
+	public Passenger() {
+
 	}
 	
-	@GeneratedValue
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int passenger_id;
+
 	private String passenger_name;
 	private String email;
 	private String password;

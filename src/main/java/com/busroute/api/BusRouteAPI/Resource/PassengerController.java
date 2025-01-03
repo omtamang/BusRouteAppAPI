@@ -37,7 +37,7 @@ public class PassengerController {
 	@Autowired
 	private SheduleDeletionService sheduleDeletionService;
 	
-	private PassengerRepository passengerRepository;
+	private final PassengerRepository passengerRepository;
 	private final JwtDecoder jwtDecoder;
 
 	public PassengerController(PassengerRepository passengerRepository, JwtDecoder jwtDecoder) {

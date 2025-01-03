@@ -1,10 +1,5 @@
 package com.busroute.api.BusRouteAPI.chat;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-
-@NoArgsConstructor
-@AllArgsConstructor
 public class Message {
 	private String senderName;
 	private String receiverName;
