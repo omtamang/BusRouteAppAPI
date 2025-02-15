@@ -1,24 +1,29 @@
 package com.busroute.api.BusRouteAPI.Route;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-//@Entity
+import java.util.List;
+
+@Entity
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Route {
-	
-	public Route() {
-		
-	}
-	
-	@GeneratedValue
+
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int route_id;
 	private String route_name;
-	private String start_location;
-	private String end_location;
+	private double start_lat;
+	private double start_lng;
+	private double end_lat;
+	private double end_lng;
 	private int no_of_buses;
-	
-	
-	
+
+	@OneToMany(mappedBy = "route")
+	private List<Stops> stops;
+
 }
