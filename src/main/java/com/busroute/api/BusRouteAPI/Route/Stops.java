@@ -1,5 +1,6 @@
 package com.busroute.api.BusRouteAPI.Route;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,5 +21,6 @@ public class Stops {
 
 	@ManyToOne
 	@JoinColumn(name = "route_id")
+	@JsonIgnore
 	private Route route;
 }

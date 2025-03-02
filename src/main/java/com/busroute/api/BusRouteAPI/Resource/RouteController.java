@@ -2,14 +2,13 @@ package com.busroute.api.BusRouteAPI.Resource;
 
 import com.busroute.api.BusRouteAPI.Repository.RouteRepository;
 import com.busroute.api.BusRouteAPI.Route.Route;
+import com.busroute.api.BusRouteAPI.Route.Stops;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class RouteController {
@@ -20,6 +19,16 @@ public class RouteController {
     @GetMapping("/get-route")
     public List<Route> getRoutes(){
         return routeRepository.findAll();
+    }
+
+    @GetMapping("/get-route/{routeId}")
+    public Optional<Route> getRouteById(@PathVariable int routeId){
+        return routeRepository.findById(routeId);
+    }
+
+    @GetMapping("/get-route/{routeId}/stops")
+    public List<Stops> getStopfromid(@PathVariable int routeId){
+        return routeRepository.findStopbyrouteId(routeId);
     }
 
     @PostMapping("/add-route")
