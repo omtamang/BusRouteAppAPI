@@ -25,5 +25,4 @@ public class Route {
 
 	@OneToMany(mappedBy = "route")
 	private List<Stops> stops;
-
 }

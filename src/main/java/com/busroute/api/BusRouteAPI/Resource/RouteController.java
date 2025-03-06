@@ -36,4 +36,11 @@ public class RouteController {
         routeRepository.save(route);
         return ResponseEntity.status(201).body(route);
     }
+
+    @DeleteMapping("/route/delete/{routeId}")
+    public ResponseEntity<Integer> deleteRoute(@PathVariable int routeId){
+        routeRepository.deleteById(routeId);
+        return ResponseEntity.status(204).body(routeId);
+    }
+
 }
