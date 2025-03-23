@@ -11,12 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import com.busroute.api.BusRouteAPI.Repository.EmailVerifyRepository;
 import com.busroute.api.BusRouteAPI.Repository.PassengerRepository;
 import com.busroute.api.BusRouteAPI.mailing.EmailCode;
@@ -110,6 +105,17 @@ public class PassengerController {
 		passengerRepository.deleteById(id);
 		
 		return ResponseEntity.noContent().build();
+	}
+
+	@GetMapping("/get-users")
+	public List<Passenger> getAllUsers(){
+		return passengerRepository.findAll();
+	}
+
+	@DeleteMapping("/delete-user/{passengerId}")
+	public ResponseEntity<Integer> deleteUserById(@PathVariable int passengerId){
+		passengerRepository.deleteById(passengerId);
+		return ResponseEntity.status(204).body(passengerId);
 	}
 	
 	public PasswordEncoder passwordEncoder() {

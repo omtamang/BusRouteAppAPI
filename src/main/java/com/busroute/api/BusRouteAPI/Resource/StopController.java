@@ -27,16 +27,11 @@ public class StopController {
         return stopsRepository.findAll();
     }
 
-    @PostMapping("/add-stops")
-    public ResponseEntity<Stops> addStop(@RequestBody Stops stops){
-        if(stops.getRoute() == null){
-            return ResponseEntity.badRequest().body(null);
-        }
+    @PostMapping("/add-stops/{routeId}")
+    public ResponseEntity<Stops> addStop(@RequestBody Stops stops, @PathVariable int routeId){
 
-        int id = stops.getRoute().getRoute_id();
-
-        Route route = routeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Route not found with ID: " + id));
+        Route route = routeRepository.findById(routeId)
+                .orElseThrow(() -> new RuntimeException("Route not found with ID: " + routeId));
 
         stops.setRoute(route);
 
@@ -49,5 +44,27 @@ public class StopController {
     public ResponseEntity<Integer> deleteStopById(@PathVariable int stopId){
         stopsRepository.deleteById(stopId);
         return ResponseEntity.status(204).body(stopId);
+    }
+
+    @PutMapping("/stop/{stopId}/update/{routeId}")
+    public ResponseEntity<Stops> updateStopById(@PathVariable int stopId, @PathVariable int routeId, @RequestBody Stops updatedStop){
+        Route route = routeRepository.findById(routeId)
+                .orElseThrow(() -> new RuntimeException("Route not found with ID: " + routeId));
+
+        Optional<Stops> optionalStop = stopsRepository.findById(stopId);
+
+        if(optionalStop.isPresent()){
+            Stops stop = optionalStop.get();
+            stop.setStop_name(updatedStop.getStop_name());
+            stop.setLat(updatedStop.getLat());
+            stop.setLng(updatedStop.getLng());
+            stop.setRoute(route);
+
+            stopsRepository.save(stop);
+            return ResponseEntity.ok().body(stop);
+        }
+        else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
