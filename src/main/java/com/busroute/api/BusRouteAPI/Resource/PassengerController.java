@@ -1,8 +1,10 @@
 package com.busroute.api.BusRouteAPI.Resource;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
+import com.busroute.api.BusRouteAPI.Route.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,12 +47,55 @@ public class PassengerController {
 	public List<Passenger> getPassengers() {
 		return passengerRepository.findAll();
 	}
-	
+
+	@PostMapping("/add-user")
+	public ResponseEntity<String> addUser(@RequestBody Passenger passenger){
+		if((boolean)passengerRepository.existsByEmail(passenger.getEmail())) {
+			return ResponseEntity.badRequest().body("Email already in use");
+		}
+		else {
+			String password = passenger.getPassword();
+			String hash = passwordEncoder().encode(password);
+			passenger.setPassword(hash);
+
+			passengerRepository.save(passenger);
+			return ResponseEntity.status(HttpStatus.CREATED).body("created successfully");
+		}
+	}
+
+	@PutMapping("/update-user/{passengerId}")
+	public ResponseEntity<String> updateUser(@PathVariable int passengerId, @RequestBody Passenger passenger) {
+		Optional<Passenger> existingRoute = passengerRepository.findById(passengerId);
+
+		if (existingRoute.isPresent()) {
+			Passenger user = existingRoute.get();
+
+			// Check if the email exists but exclude the current user's email
+			boolean emailExists = passengerRepository.existsByEmail(passenger.getEmail()) &&
+					!user.getEmail().equals(passenger.getEmail());
+
+			if (emailExists) {
+				return ResponseEntity.badRequest().body("Email already in use.");
+			} else {
+				user.setPassenger_name(passenger.getPassenger_name());
+				user.setPassword(passenger.getPassword());
+				user.setEmail(passenger.getEmail());
+				user.setVerified(passenger.isVerified());
+
+				passengerRepository.save(user);
+				return ResponseEntity.ok().body("Updated successfully");
+			}
+		} else {
+			return ResponseEntity.notFound().build();
+		}
+	}
+
+
 	@PostMapping("/passenger/signup")
 	public ResponseEntity<String> addPassenger(@RequestBody Passenger passenger) {
 		
 		if((boolean)passengerRepository.existsByEmail(passenger.getEmail())) {
-			return ResponseEntity.badRequest().body("Email already in use");
+			return ResponseEntity.badRequest().body("Email already in use.");
 		}
 		
 		String password = passenger.getPassword();
