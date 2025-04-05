@@ -61,7 +61,7 @@ public class JwtSecurityConfiguration {
 		http.cors()
 		.and()
 		.authorizeHttpRequests(auth -> auth
-				.requestMatchers("/token", "/passenger/signup", "/verify/code", "/send/code/{email}").permitAll()
+				.requestMatchers("/token", "/passenger/signup", "/verify/code", "/send/code/{email}", "/api/location").permitAll()
 				.anyRequest().authenticated()
 				);
 		

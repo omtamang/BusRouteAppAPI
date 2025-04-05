@@ -31,6 +31,7 @@ public class BusRouteApiApplication {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         source.registerCorsConfiguration("/token", config);
+        source.registerCorsConfiguration("/api/location", config);
         System.out.println("Filter triggered");
         return new CorsFilter(source);
     }
