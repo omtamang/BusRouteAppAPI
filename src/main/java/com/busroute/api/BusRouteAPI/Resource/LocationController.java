@@ -7,34 +7,40 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/location")
-    public class LocationController {
+public class LocationController {
 
-    private double latitude;
-    private double longitude;
+    // Stores deviceId -> (latitude, longitude)
+    private Map<String, Map<String, Double>> locationMap = new HashMap<>();
 
+    // Receive location from Android app
     @PostMapping
-    public Map<String, String> receiveLocation(@RequestBody Map<String, Double> locationData) {
-        System.out.println("Received location: " + locationData);
+    public Map<String, String> receiveLocation(@RequestBody Map<String, Object> locationData) {
+        String deviceId = (String) locationData.get("deviceId");
+        Double latitude = ((Number) locationData.get("latitude")).doubleValue();
+        Double longitude = ((Number) locationData.get("longitude")).doubleValue();
 
-        this.latitude = locationData.get("latitude");
-        this.longitude = locationData.get("longitude");
+        System.out.println("Received from device: " + deviceId + " -> Lat: " + latitude + ", Lng: " + longitude);
+
+        // Store in map
+        Map<String, Double> coords = new HashMap<>();
+        coords.put("latitude", latitude);
+        coords.put("longitude", longitude);
+        locationMap.put(deviceId, coords);
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Location updated successfully");
+        response.put("message", "Location updated successfully for device: " + deviceId);
         return response;
     }
 
-    @GetMapping
-    public Map<String, Double> getLocation() {
-        Map<String, Double> response = new HashMap<>();
-        response.put("latitude", latitude);
-        response.put("longitude", longitude);
+    // Retrieve location for a specific device
+    @GetMapping("/{deviceId}")
+    public Map<String, Double> getLocation(@PathVariable String deviceId) {
+        Map<String, Double> coords = locationMap.get(deviceId);
+        if (coords == null) {
+            throw new RuntimeException("Device ID not found");
+        }
 
-        System.out.println(latitude);
-        System.out.println("--------++++++++++--------");
-        System.out.println(longitude);
-        return response;
+        System.out.println("Fetched for " + deviceId + " -> " + coords);
+        return coords;
     }
-
 }
-
