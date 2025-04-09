@@ -1,5 +1,6 @@
 	package com.busroute.api.BusRouteAPI.Route;
 	
+	import com.busroute.api.BusRouteAPI.Bus.Bus;
 	import jakarta.persistence.*;
 	import lombok.AllArgsConstructor;
 	import lombok.Data;
@@ -25,4 +26,7 @@
 	
 		@OneToMany(mappedBy = "route")
 		private List<Stops> stops;
+
+		@OneToMany(mappedBy = "bus_route")
+		private List<Bus> bus;
 	}
