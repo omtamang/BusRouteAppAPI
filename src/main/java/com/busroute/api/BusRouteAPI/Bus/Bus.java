@@ -1,13 +1,13 @@
 package com.busroute.api.BusRouteAPI.Bus;
 
 import com.busroute.api.BusRouteAPI.Route.Route;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -18,15 +18,19 @@ public class Bus {
     @Id
     @GeneratedValue
     private int busId;
+
     private String deviceId;
     private String busNo;
     private double latitude;
     private double longitude;
     private double speed;
-    private String next_stop;
+    private String nextStop;
     private boolean status;
     private double approximate_arrival_time;
+    private LocalDateTime lastUpdated;
 
     @ManyToOne
-    private Route bus_route;
+    @JoinColumn(name = "route_id")
+    @JsonIgnore
+    private Route busRoute;
 }

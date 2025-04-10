@@ -1,5 +1,6 @@
 package com.busroute.api.BusRouteAPI.Resource;
 
+import com.busroute.api.BusRouteAPI.Bus.Bus;
 import com.busroute.api.BusRouteAPI.Repository.RouteRepository;
 import com.busroute.api.BusRouteAPI.Route.Route;
 import com.busroute.api.BusRouteAPI.Route.Stops;
@@ -30,6 +31,11 @@ public class RouteController {
     @GetMapping("/get-route/{routeId}/stops")
     public List<Stops> getStopfromid(@PathVariable int routeId){
         return routeRepository.findStopbyrouteId(routeId);
+    }
+
+    @GetMapping("/get-route/{routeId}/buses")
+    public List<Bus> getBusById(@PathVariable int routeId){
+        return routeRepository.findBusbyrouteId(routeId);
     }
 
     @PostMapping("/add-route")

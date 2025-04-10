@@ -27,6 +27,6 @@
 		@OneToMany(mappedBy = "route")
 		private List<Stops> stops;
 
-		@OneToMany(mappedBy = "bus_route")
+		@OneToMany(mappedBy = "busRoute")
 		private List<Bus> bus;
 	}

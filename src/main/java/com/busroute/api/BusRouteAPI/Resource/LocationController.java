@@ -1,23 +1,72 @@
 package com.busroute.api.BusRouteAPI.Resource;
 
+import com.busroute.api.BusRouteAPI.Bus.Bus;
+import com.busroute.api.BusRouteAPI.Repository.BusRespository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.time.LocalDateTime;
+
 
 @RestController
 @RequestMapping("/api/location")
 public class LocationController {
 
+    @Autowired
+    private BusRespository busRespository;
+
     // Stores deviceId -> (latitude, longitude)
     private Map<String, Map<String, Double>> locationMap = new HashMap<>();
+
+    public double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; // Radius of the earth in km
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c; // in kilometers
+    }
 
     // Receive location from Android app
     @PostMapping
     public Map<String, String> receiveLocation(@RequestBody Map<String, Object> locationData) {
         String deviceId = (String) locationData.get("deviceId");
-        Double latitude = ((Number) locationData.get("latitude")).doubleValue();
-        Double longitude = ((Number) locationData.get("longitude")).doubleValue();
+        double latitude = ((Number) locationData.get("latitude")).doubleValue();
+        double longitude = ((Number) locationData.get("longitude")).doubleValue();
+
+        Optional<Bus> existingBus = busRespository.findByDeviceId(deviceId);
+
+        if(existingBus.isPresent()){
+            Bus bus = existingBus.get();
+
+            LocalDateTime now = LocalDateTime.now();
+            double speed = 0;
+
+            if (bus.getLastUpdated() != null) {
+                Duration duration = Duration.between(bus.getLastUpdated(), now);
+                long seconds = duration.getSeconds();
+
+                if (seconds > 0) {
+                    double distance = calculateDistance(bus.getLatitude(), bus.getLongitude(), latitude, longitude);
+                    speed = (distance / (seconds / 3600.0)); // km/h
+                }
+            }
+
+            bus.setDeviceId(deviceId);
+            bus.setLatitude(latitude);
+            bus.setLongitude(longitude);
+            bus.setSpeed(speed);
+            bus.setLastUpdated(now);
+            bus.setStatus(true);
+            busRespository.save(bus);
+
+        }
 
         System.out.println("Received from device: " + deviceId + " -> Lat: " + latitude + ", Lng: " + longitude);
 
@@ -32,15 +81,4 @@ public class LocationController {
         return response;
     }
 
-    // Retrieve location for a specific device
-    @GetMapping("/{deviceId}")
-    public Map<String, Double> getLocation(@PathVariable String deviceId) {
-        Map<String, Double> coords = locationMap.get(deviceId);
-        if (coords == null) {
-            throw new RuntimeException("Device ID not found");
-        }
-
-        System.out.println("Fetched for " + deviceId + " -> " + coords);
-        return coords;
-    }
 }

@@ -2,15 +2,15 @@ package com.busroute.api.BusRouteAPI.Resource;
 
 import com.busroute.api.BusRouteAPI.Bus.Bus;
 import com.busroute.api.BusRouteAPI.Repository.BusRespository;
+import com.busroute.api.BusRouteAPI.Repository.RouteRepository;
+import com.busroute.api.BusRouteAPI.Route.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -18,6 +18,9 @@ public class BusController {
 
     @Autowired
     private BusRespository busRespository;
+
+    @Autowired
+    private RouteRepository routeRepository;
 
     @GetMapping("/get-bus")
     public List<Bus> getAllBus(){
@@ -32,6 +35,18 @@ public class BusController {
         else {
             busRespository.save(bus);
             return ResponseEntity.status(HttpStatusCode.valueOf(200)).body("Created Successfully");
+        }
+    }
+
+    @DeleteMapping("/bus/delete/{busId}")
+    public ResponseEntity<String> deleteBusById(@PathVariable int busId){
+        Optional<Bus> bus = busRespository.findById(busId);
+
+        if (bus.isPresent()) {
+            busRespository.deleteById(busId);
+            return ResponseEntity.noContent().build();  // 204 No Content
+        } else {
+            return ResponseEntity.notFound().build();  // 404 Not Found if bus doesn't exist
         }
     }
 }
