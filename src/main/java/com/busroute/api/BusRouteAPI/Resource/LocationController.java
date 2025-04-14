@@ -2,15 +2,16 @@ package com.busroute.api.BusRouteAPI.Resource;
 
 import com.busroute.api.BusRouteAPI.Bus.Bus;
 import com.busroute.api.BusRouteAPI.Repository.BusRespository;
+import com.busroute.api.BusRouteAPI.Route.Stops;
+import com.busroute.api.BusRouteAPI.Route.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.time.LocalDateTime;
-
 
 @RestController
 @RequestMapping("/api/location")
@@ -42,9 +43,8 @@ public class LocationController {
 
         Optional<Bus> existingBus = busRespository.findByDeviceId(deviceId);
 
-        if(existingBus.isPresent()){
+        if (existingBus.isPresent()) {
             Bus bus = existingBus.get();
-
             LocalDateTime now = LocalDateTime.now();
             double speed = 0;
 
@@ -64,8 +64,33 @@ public class LocationController {
             bus.setSpeed(speed);
             bus.setLastUpdated(now);
             bus.setStatus(true);
-            busRespository.save(bus);
 
+            // === Find Next Stop ===
+            Route route = bus.getBusRoute();
+            Stops nextStop = null;
+            double minDistance = Double.MAX_VALUE;
+
+            if (route != null && route.getStops() != null) {
+                for (Stops stop : route.getStops()) {
+                    double distanceToStop = calculateDistance(latitude, longitude, stop.getLat(), stop.getLng());
+
+                    if (distanceToStop < minDistance) {
+                        minDistance = distanceToStop;
+                        nextStop = stop;
+                    }
+                }
+            }
+
+            if (nextStop != null && speed > 0) {
+                double etaHours = minDistance / speed;
+                long etaSeconds = (long) (etaHours * 3600);
+                LocalDateTime arrivalTime = now.plusSeconds(etaSeconds);
+
+                bus.setNextStop(nextStop.getStop_name());
+                bus.setApproximate_arrival_time(etaSeconds); // You can change this to formatted time if needed
+            }
+
+            busRespository.save(bus);
         }
 
         System.out.println("Received from device: " + deviceId + " -> Lat: " + latitude + ", Lng: " + longitude);
@@ -80,5 +105,4 @@ public class LocationController {
         response.put("message", "Location updated successfully for device: " + deviceId);
         return response;
     }
-
 }
