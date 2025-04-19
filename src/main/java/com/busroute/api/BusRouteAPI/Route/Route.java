@@ -1,6 +1,7 @@
 	package com.busroute.api.BusRouteAPI.Route;
 	
 	import com.busroute.api.BusRouteAPI.Bus.Bus;
+	import com.busroute.api.BusRouteAPI.user.Reminder;
 	import jakarta.persistence.*;
 	import lombok.AllArgsConstructor;
 	import lombok.Data;
@@ -29,4 +30,7 @@
 
 		@OneToMany(mappedBy = "busRoute")
 		private List<Bus> bus;
+
+		@OneToMany(mappedBy = "notifyRoute")
+		private List<Reminder> reminder;
 	}

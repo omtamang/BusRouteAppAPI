@@ -11,5 +11,6 @@ public interface BusRespository extends JpaRepository<Bus, Integer> {
 
     boolean existsByDeviceId(String deviceId);
     Optional<Bus> findByDeviceId(String deviceId);
+    List<Bus> findByBusRoute(Route route);
 
 }

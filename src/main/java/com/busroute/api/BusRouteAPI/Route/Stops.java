@@ -1,10 +1,13 @@
 package com.busroute.api.BusRouteAPI.Route;
 
+import com.busroute.api.BusRouteAPI.user.Reminder;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,4 +26,7 @@ public class Stops {
 	@JoinColumn(name = "route_id")
 	@JsonIgnore
 	private Route route;
+
+	@OneToMany(mappedBy = "notifyStop")
+	private List<Reminder> reminder;
 }
