@@ -5,6 +5,7 @@ import com.busroute.api.BusRouteAPI.Repository.BusRespository;
 import com.busroute.api.BusRouteAPI.Repository.RouteRepository;
 import com.busroute.api.BusRouteAPI.Route.Route;
 import com.busroute.api.BusRouteAPI.Route.Stops;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -16,13 +17,14 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
+@AllArgsConstructor
 public class BusController {
 
-    @Autowired
-    private BusRespository busRespository;
 
-    @Autowired
-    private RouteRepository routeRepository;
+    private final BusRespository busRespository;
+
+
+    private final RouteRepository routeRepository;
 
     @GetMapping("/get-bus")
     public List<Bus> getAllBus(){

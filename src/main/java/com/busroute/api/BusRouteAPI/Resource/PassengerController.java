@@ -4,7 +4,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
+import com.busroute.api.BusRouteAPI.Repository.ReminderRepository;
 import com.busroute.api.BusRouteAPI.Route.Route;
+import com.busroute.api.BusRouteAPI.user.Reminder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,11 +38,12 @@ public class PassengerController {
 	
 	private final PassengerRepository passengerRepository;
 	private final JwtDecoder jwtDecoder;
+	private ReminderRepository reminderRepository;
 
-	public PassengerController(PassengerRepository passengerRepository, JwtDecoder jwtDecoder) {
-		super();
+	public PassengerController(PassengerRepository passengerRepository, JwtDecoder jwtDecoder, ReminderRepository reminderRepository) {
 		this.passengerRepository = passengerRepository;
 		this.jwtDecoder = jwtDecoder;
+		this.reminderRepository = reminderRepository;
 	}
 	
 	@GetMapping("/passengers")
@@ -146,7 +149,10 @@ public class PassengerController {
 		
 		Passenger passenger = list.get(0);
 		int id = passenger.getPassenger_id();
-		
+
+		List<Reminder> reminder = reminderRepository.findByNotifyEmail(email);
+
+		reminderRepository.deleteAll(reminder);
 		passengerRepository.deleteById(id);
 		
 		return ResponseEntity.noContent().build();

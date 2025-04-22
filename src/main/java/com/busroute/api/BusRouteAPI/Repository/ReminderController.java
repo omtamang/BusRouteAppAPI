@@ -34,6 +34,11 @@ public class ReminderController {
         return reminderRepository.findByNotifyEmail(email);
     }
 
+    @GetMapping("/get-reminders")
+    public List<Reminder> getReminder(){
+        return reminderRepository.findAll();
+    }
+
     @PostMapping("/setReminder/{routeId}/{stopId}/{email}")
     public ResponseEntity<Reminder> setReminder(@PathVariable int routeId, @PathVariable int stopId, @PathVariable String email, @RequestBody Reminder reminder){
         Route route = routeRepository.findById(routeId)
