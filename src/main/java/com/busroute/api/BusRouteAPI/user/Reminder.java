@@ -28,11 +28,9 @@ public class Reminder {
 	private boolean status;
 
 	@ManyToOne
-	@JsonIgnore
 	private Route notifyRoute;
 
 	@ManyToOne
-	@JsonIgnore
 	private Stops notifyStop;
 
 	@ManyToOne

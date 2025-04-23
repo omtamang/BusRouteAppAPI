@@ -27,6 +27,7 @@ public class Stops {
 	@JsonIgnore
 	private Route route;
 
+	@JsonIgnore
 	@OneToMany(mappedBy = "notifyStop")
 	private List<Reminder> reminder;
 }
