@@ -93,6 +93,45 @@ public class PassengerController {
 		}
 	}
 
+	@PutMapping("/updateByUser/{passengerId}")
+	public ResponseEntity<String> updateByUser(@PathVariable int passengerId, @RequestBody Passenger passenger) {
+		Optional<Passenger> existingRoute = passengerRepository.findById(passengerId);
+
+		if (existingRoute.isPresent()) {
+			Passenger user = existingRoute.get();
+
+			// Check if the email exists but exclude the current user's email
+			boolean emailExists = passengerRepository.existsByEmail(passenger.getEmail()) &&
+					!user.getEmail().equals(passenger.getEmail());
+
+			if (emailExists) {
+				return ResponseEntity.badRequest().body("Email already in use.");
+			} else {
+				if (!passwordEncoder().matches(passenger.getPassword(), user.getPassword())) {
+					return ResponseEntity.badRequest().body("Incorrect password.");
+				}
+				if(!(passenger.getNewPassword().isEmpty())){
+					String password = passenger.getNewPassword();
+					String hash = passwordEncoder().encode(password);
+					user.setPassword(hash);
+				}else {
+					String password = passenger.getPassword();
+					String hash = passwordEncoder().encode(password);
+					user.setPassword(hash);
+				}
+
+				user.setPassenger_name(passenger.getPassenger_name());
+				user.setEmail(passenger.getEmail());
+				user.setVerified(passenger.isVerified());
+
+				passengerRepository.save(user);
+				return ResponseEntity.ok().body("Updated successfully");
+			}
+		} else {
+			return ResponseEntity.notFound().build();
+		}
+	}
+
 
 	@PostMapping("/passenger/signup")
 	public ResponseEntity<String> addPassenger(@RequestBody Passenger passenger) {
@@ -161,6 +200,11 @@ public class PassengerController {
 	@GetMapping("/get-users")
 	public List<Passenger> getAllUsers(){
 		return passengerRepository.findAll();
+	}
+
+	@GetMapping("/retrieveInfo/{email}")
+	public List<Passenger> getUserInfo(@PathVariable String email){
+		return passengerRepository.findByEmail(email);
 	}
 
 	@DeleteMapping("/delete-user/{passengerId}")

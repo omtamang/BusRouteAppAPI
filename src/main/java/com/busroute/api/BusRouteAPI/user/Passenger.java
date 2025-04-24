@@ -22,6 +22,7 @@ public class Passenger {
 	private String passenger_name;
 	private String email;
 	private String password;
+	private String newPassword;
 	private boolean verified;
 
 	@OneToMany(mappedBy = "passenger", fetch = FetchType.EAGER )
