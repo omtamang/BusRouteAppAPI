@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,6 +33,7 @@ public class BusController {
     }
 
     @PostMapping("/add-bus/{routeId}")
+    @PreAuthorize("@accessService.isAdmin(authentication.name)")
     public ResponseEntity<String> addBus(@RequestBody Bus bus, @PathVariable int routeId){
         if((boolean) busRespository.existsByDeviceId(bus.getDeviceId())){
             return ResponseEntity.badRequest().body("Bus already present in the route.");
@@ -47,6 +49,7 @@ public class BusController {
     }
 
     @DeleteMapping("/bus/delete/{busId}")
+    @PreAuthorize("@accessService.isAdmin(authentication.name)")
     public ResponseEntity<String> deleteBusById(@PathVariable int busId){
         Optional<Bus> bus = busRespository.findById(busId);
 
@@ -59,6 +62,7 @@ public class BusController {
     }
 
     @PutMapping("/bus/{busId}/update/{routeId}")
+    @PreAuthorize("@accessService.isAdmin(authentication.name)")
     public ResponseEntity<Bus> updateBusById(@PathVariable int busId, @PathVariable int routeId, @RequestBody Bus updatedBus){
         Route route = routeRepository.findById(routeId)
                 .orElseThrow(() -> new RuntimeException("Route not found with ID: " + routeId));

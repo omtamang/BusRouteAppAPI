@@ -105,4 +105,6 @@ public class LocationController {
         response.put("message", "Location updated successfully for device: " + deviceId);
         return response;
     }
+
+
 }

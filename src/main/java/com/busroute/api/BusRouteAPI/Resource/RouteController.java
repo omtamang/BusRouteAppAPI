@@ -6,6 +6,7 @@ import com.busroute.api.BusRouteAPI.Route.Route;
 import com.busroute.api.BusRouteAPI.Route.Stops;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.swing.text.html.Option;
@@ -39,18 +40,21 @@ public class RouteController {
     }
 
     @PostMapping("/add-route")
+    @PreAuthorize("@accessService.isAdmin(authentication.name)")
     public ResponseEntity<Route> addRoute(@RequestBody Route route){
         routeRepository.save(route);
         return ResponseEntity.status(201).body(route);
     }
 
     @DeleteMapping("/route/delete/{routeId}")
+    @PreAuthorize("@accessService.isAdmin(authentication.name)")
     public ResponseEntity<Integer> deleteRoute(@PathVariable int routeId){
         routeRepository.deleteById(routeId);
         return ResponseEntity.status(204).body(routeId);
     }
 
     @PutMapping("/route/{routeId}")
+    @PreAuthorize("@accessService.isAdmin(authentication.name)")
     public ResponseEntity<Route> updateRoute(@PathVariable int routeId, @RequestBody Route updatedRoute){
         Optional<Route> existingRoute = routeRepository.findById(routeId);
 
